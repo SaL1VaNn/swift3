@@ -1,0 +1,76 @@
+import SwiftUI
+
+struct ContentView: View {
+    @StateObject var viewModel = RecipeViewModel()
+    @State private var newRecipeTitle = ""
+    @State private var newRecipeIngredients = ""
+    @State private var newRecipeInstruction = ""
+    @State private var newRecipeCategory = ""
+    @State private var editingRecipe: Recipe?
+    @State private var selectedCategory: String = ""
+
+    var body: some View {
+        NavigationView {
+            VStack {
+                Picker("Категорія", selection: $viewModel.selectedCaregory) {
+                    Text("Усі").tag("")
+                    Text("Супи").tag("Супи")
+                    Text("Салати").tag("Салати")
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding()
+
+                List {
+                    ForEach(viewModel.recipes) { recipe in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(recipe.title).font(.headline)
+                                Text(recipe.ingridients).font(.subheadline)
+                            }
+                            Spacer()
+                            Button(action: {
+                                newRecipeTitle = recipe.title
+                                newRecipeIngredients = recipe.ingridients
+                                newRecipeInstruction = recipe.instructions
+                                newRecipeCategory = recipe.category
+                                editingRecipe = recipe
+                            }) {
+                                Text("Редагувати")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .onDelete(perform: deleteRecipe)
+                }
+
+                Form {
+                    TextField("Назва", text: $newRecipeTitle)
+                    TextField("Інгредієнти", text: $newRecipeIngredients)
+                    TextField("Процес Приготування", text: $newRecipeInstruction)
+                    TextField("Категорія", text: $newRecipeCategory)
+
+                    Button("Додати рецепт") {
+                        viewModel.addRecipe(title: newRecipeTitle, ingredients: newRecipeIngredients, instructions: newRecipeInstruction, category: newRecipeCategory)
+
+                        newRecipeTitle = ""
+                        newRecipeIngredients = ""
+                        newRecipeInstruction = ""
+                        newRecipeCategory = ""
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("Рецепти")
+        }
+    }
+
+    private func deleteRecipe(at offsets: IndexSet) {
+        for index in offsets {
+            viewModel.deleteRecipe(recipe: viewModel.recipes[index])
+        }
+    }
+}
+
+#Preview {
+    ContentView()
+}
